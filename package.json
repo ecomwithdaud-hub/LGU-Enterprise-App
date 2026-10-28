@@ -1,0 +1,34 @@
+{
+  "name": "lgu-super-app",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Lahore Garrison University (LGU) All-in-One Enterprise Super App Ecosystem",
+  "workspaces": [
+    "backend",
+    "admin-web",
+    "mobile-app"
+  ],
+  "scripts": {
+    "dev:backend": "npm --prefix backend run start:dev",
+    "dev:admin": "npm --prefix admin-web run dev",
+    "dev:mobile": "npm --prefix mobile-app run start",
+    "db:migrate": "npm --prefix backend run prisma:migrate",
+    "db:generate": "npm --prefix backend run prisma:generate",
+    "db:seed": "npm --prefix backend run prisma:seed",
+    "db:studio": "npm --prefix backend run prisma:studio",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down"
+  },
+  "keywords": [
+    "lgu",
+    "lahore-garrison-university",
+    "enterprise",
+    "super-app",
+    "nestjs",
+    "prisma",
+    "expo",
+    "nextjs"
+  ],
+  "author": "LGU Enterprise Solutions Architecture Team",
+  "license": "UNLICENSED"
+}

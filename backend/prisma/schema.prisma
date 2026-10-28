@@ -1,0 +1,687 @@
+// ==============================================================================
+// Lahore Garrison University (LGU) - All-in-One Enterprise Super App Platform
+// Prisma Schema Definition
+// Version: 1.0.0
+// Database Engine: PostgreSQL 16+
+// ==============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ------------------------------------------------------------------------------
+// ENUMS
+// ------------------------------------------------------------------------------
+
+enum RoleType {
+  SUPER_ADMIN
+  VC
+  REGISTRAR
+  HOD
+  FACULTY
+  STUDENT
+  ACCOUNTS
+  TRANSPORT
+  SECURITY
+  LIBRARY
+  CAFETERIA
+}
+
+enum DepartmentType {
+  ACADEMIC
+  ADMINISTRATIVE
+}
+
+enum DegreeLevel {
+  UNDERGRADUATE
+  GRADUATE
+  POSTGRADUATE
+  DOCTORAL
+}
+
+enum DayOfWeek {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+}
+
+enum RoomType {
+  LECTURE_HALL
+  COMPUTER_LAB
+  SEMINAR_ROOM
+  AUDITORIUM
+  CONFERENCE_ROOM
+}
+
+enum Shift {
+  MORNING
+  AFTERNOON
+  EVENING
+  GENERAL
+}
+
+enum BorrowStatus {
+  ISSUED
+  RETURNED
+  OVERDUE
+  LOST
+}
+
+enum BusStatus {
+  ACTIVE
+  MAINTENANCE
+  INACTIVE
+}
+
+enum ChallanStatus {
+  UNPAID
+  PAID
+  OVERDUE
+  PARTIAL
+  CANCELLED
+}
+
+enum PaymentMethod {
+  HBL_ONLINE
+  BANK_TRANSFER
+  JAZZCASH
+  NAYAPAY
+  CASH_COUNTER
+}
+
+enum OrderStatus {
+  PLACED
+  ACCEPTED
+  PREPARING
+  READY_FOR_PICKUP
+  COMPLETED
+  CANCELLED
+}
+
+enum OrderPaymentStatus {
+  PENDING
+  PAID
+  REFUNDED
+}
+
+enum NoticeCategory {
+  ACADEMIC
+  EXAMINATION
+  EVENTS
+  EMERGENCY
+  TRANSPORT
+  SPORTS
+  SCHOLARSHIPS
+  GENERAL
+}
+
+enum NoticePriority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum TargetAudience {
+  ALL
+  STUDENTS
+  FACULTY
+  STAFF
+}
+
+enum GatePassType {
+  STUDENT_CARD
+  FACULTY_CARD
+  STAFF_CARD
+  VISITOR
+  VEHICLE
+}
+
+// ------------------------------------------------------------------------------
+// 1. RBAC: ROLES & PERMISSIONS
+// ------------------------------------------------------------------------------
+
+model Role {
+  id          String           @id @default(uuid()) @db.Uuid
+  type        RoleType         @unique
+  name        String           @unique
+  displayName String
+  description String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  users       User[]
+  permissions RolePermission[]
+
+  @@map("roles")
+}
+
+model Permission {
+  id          String           @id @default(uuid()) @db.Uuid
+  slug        String           @unique // e.g. "timetables:manage", "fees:verify"
+  module      String           // e.g. "TIMETABLES", "ACCOUNTS", "LIBRARY"
+  description String
+  createdAt   DateTime         @default(now())
+  roles       RolePermission[]
+
+  @@map("permissions")
+}
+
+model RolePermission {
+  roleId       String     @db.Uuid
+  permissionId String     @db.Uuid
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+// ------------------------------------------------------------------------------
+// 2. USERS & PROFILES
+// ------------------------------------------------------------------------------
+
+model User {
+  id               String          @id @default(uuid()) @db.Uuid
+  email            String          @unique // e.g. "fa22-bcs-042@lgu.edu.pk" or "dr.ahmed@lgu.edu.pk"
+  password         String          // Hashed with bcrypt
+  firstName        String
+  lastName         String
+  phone            String?         // Pakistani format: +92-300-1234567
+  cnic             String?         @unique // e.g. "35201-1234567-1"
+  avatarUrl        String?
+  isActive         Boolean         @default(true)
+  isEmailVerified  Boolean         @default(true)
+  lastLoginAt      DateTime?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  // Foreign Keys
+  roleId           String          @db.Uuid
+  role             Role            @relation(fields: [roleId], references: [id])
+  departmentId     String?         @db.Uuid
+  department       Department?     @relation(fields: [departmentId], references: [id])
+
+  // Profile Extensions
+  studentProfile   StudentProfile?
+  facultyProfile   FacultyProfile?
+  staffProfile     StaffProfile?
+
+  // Relations across enterprise modules
+  timetablesTaught TimetableSlot[] @relation("FacultyTimetables")
+  headOfDepartment Department?     @relation("DepartmentHoD")
+  borrowRecords    BorrowRecord[]
+  busSubscriptions BusSubscription[]
+  feeChallans      FeeChallan[]
+  cafeteriaOrders  CafeteriaOrder[]
+  authoredNotices  Notice[]
+  gatePasses       GatePass[]
+
+  @@index([email])
+  @@index([roleId])
+  @@index([departmentId])
+  @@map("users")
+}
+
+model StudentProfile {
+  id                 String    @id @default(uuid()) @db.Uuid
+  userId             String    @unique @db.Uuid
+  user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rollNumber         String    @unique // e.g. "FA22-BCS-042"
+  registrationNumber String    @unique // e.g. "LGU-2022-CS-042"
+  currentSemester    Int       @default(1)
+  cgpa               Float?    @default(0.0)
+  guardianName       String?
+  guardianPhone      String?
+  guardianRelation   String?   // Father, Mother, Guardian
+  bloodGroup         String?
+  homeAddress        String?
+
+  programId          String    @db.Uuid
+  program            Program   @relation(fields: [programId], references: [id])
+  sectionId          String?   @db.Uuid
+  section            Section?  @relation(fields: [sectionId], references: [id])
+
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  @@index([rollNumber])
+  @@index([programId])
+  @@index([sectionId])
+  @@map("student_profiles")
+}
+
+model FacultyProfile {
+  id             String    @id @default(uuid()) @db.Uuid
+  userId         String    @unique @db.Uuid
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  employeeId     String    @unique // e.g. "FAC-CS-019"
+  designation    String    // Professor, Associate Professor, Assistant Professor, Lecturer
+  qualification  String    // Ph.D. in Computer Science, MS SE
+  specialization String?   // AI, Computer Networks, Distributed Systems
+  officeRoom     String?   // "CS Block, Room 205"
+  officeHours    String?   // "Mon & Wed: 11:00 AM - 01:00 PM"
+  joiningDate    DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([employeeId])
+  @@map("faculty_profiles")
+}
+
+model StaffProfile {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @unique @db.Uuid
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  employeeId  String   @unique // e.g. "STF-TR-005"
+  designation String   // Accounts Officer, Transport Supervisor, Chief Librarian
+  shift       Shift    @default(GENERAL)
+  deskLocation String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([employeeId])
+  @@map("staff_profiles")
+}
+
+// ------------------------------------------------------------------------------
+// 3. ACADEMIC STRUCTURE: DEPARTMENTS, PROGRAMS, BATCHES, SECTIONS, COURSES
+// ------------------------------------------------------------------------------
+
+model Department {
+  id          String         @id @default(uuid()) @db.Uuid
+  code        String         @unique // "CS", "SE", "IT", "MATH", "ACC", "TRANS", "LIB", "SEC", "CAFE"
+  name        String         @unique // "Department of Computer Science"
+  type        DepartmentType @default(ACADEMIC)
+  description String?
+  location    String?        // "Block B, Academic Wing"
+  hodId       String?        @unique @db.Uuid
+  hod         User?          @relation("DepartmentHoD", fields: [hodId], references: [id])
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  users       User[]
+  programs    Program[]
+  courses     Course[]
+
+  @@map("departments")
+}
+
+model Program {
+  id             String         @id @default(uuid()) @db.Uuid
+  code           String         @unique // e.g. "BSCS", "BSSE", "BSIT", "BBA"
+  name           String         // "Bachelor of Science in Computer Science"
+  degreeLevel    DegreeLevel    @default(UNDERGRADUATE)
+  totalSemesters Int            @default(8)
+  departmentId   String         @db.Uuid
+  department     Department     @relation(fields: [departmentId], references: [id])
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  students       StudentProfile[]
+  sections       Section[]
+
+  @@map("programs")
+}
+
+model Batch {
+  id        String    @id @default(uuid()) @db.Uuid
+  code      String    @unique // e.g. "FA21", "SP22", "FA22", "SP23", "FA23", "FA24"
+  name      String    // "Fall 2022", "Spring 2023"
+  startYear Int
+  endYear   Int
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  sections  Section[]
+
+  @@map("batches")
+}
+
+model Section {
+  id          String          @id @default(uuid()) @db.Uuid
+  name        String          // e.g. "BSCS-5A", "BSCS-5B", "BSSE-3A"
+  semester    Int
+  shift       Shift           @default(MORNING)
+  maxCapacity Int             @default(50)
+  programId   String          @db.Uuid
+  program     Program         @relation(fields: [programId], references: [id])
+  batchId     String          @db.Uuid
+  batch       Batch           @relation(fields: [batchId], references: [id])
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  students    StudentProfile[]
+  timetables  TimetableSlot[]
+
+  @@unique([name, batchId])
+  @@index([programId])
+  @@index([batchId])
+  @@map("sections")
+}
+
+model Course {
+  id           String          @id @default(uuid()) @db.Uuid
+  code         String          @unique // e.g. "CS-301", "CS-204", "SE-302"
+  title        String          // "Data Structures & Algorithms"
+  creditHours  Int             @default(3)
+  isLab        Boolean         @default(false)
+  departmentId String          @db.Uuid
+  department   Department      @relation(fields: [departmentId], references: [id])
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  timetables   TimetableSlot[]
+
+  @@index([departmentId])
+  @@map("courses")
+}
+
+// ------------------------------------------------------------------------------
+// 4. VENUES & ROOMS
+// ------------------------------------------------------------------------------
+
+model Room {
+  id               String          @id @default(uuid()) @db.Uuid
+  roomNumber       String          @unique // e.g. "CS-LAB-1", "LH-101", "SEM-A"
+  building         String          // "Main Academic Block", "Sir Syed Block", "Jinnah Block"
+  floor            Int             @default(1)
+  capacity         Int             @default(45)
+  roomType         RoomType        @default(LECTURE_HALL)
+  hasProjector     Boolean         @default(true)
+  isAirConditioned Boolean         @default(true)
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  timetables       TimetableSlot[]
+
+  @@index([roomNumber])
+  @@index([building])
+  @@map("rooms")
+}
+
+// ------------------------------------------------------------------------------
+// 5. TIMETABLES (ROOM, TEACHER, & STUDENT SECTION SCHEDULES)
+// ------------------------------------------------------------------------------
+
+model TimetableSlot {
+  id           String    @id @default(uuid()) @db.Uuid
+  dayOfWeek    DayOfWeek
+  startTime    String    // "08:30" (24-hour format)
+  endTime      String    // "10:00"
+  semester     Int
+  academicYear String    @default("2026-2027")
+  isActive     Boolean   @default(true)
+
+  sectionId    String    @db.Uuid
+  section      Section   @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+
+  courseId     String    @db.Uuid
+  course       Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  teacherId    String    @db.Uuid
+  teacher      User      @relation("FacultyTimetables", fields: [teacherId], references: [id], onDelete: Cascade)
+
+  roomId       String    @db.Uuid
+  room         Room      @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  // Strict collision-free constraints:
+  // 1. A room cannot host two classes simultaneously on the same day.
+  @@unique([dayOfWeek, roomId, startTime, academicYear], name: "unique_room_slot")
+  // 2. A teacher cannot teach two classes simultaneously on the same day.
+  @@unique([dayOfWeek, teacherId, startTime, academicYear], name: "unique_teacher_slot")
+  // 3. A section cannot attend two classes simultaneously on the same day.
+  @@unique([dayOfWeek, sectionId, startTime, academicYear], name: "unique_section_slot")
+
+  @@index([dayOfWeek])
+  @@index([teacherId])
+  @@index([sectionId])
+  @@index([roomId])
+  @@map("timetable_slots")
+}
+
+// ------------------------------------------------------------------------------
+// 6. MODULE: CENTRAL LIBRARY & BORROW SYSTEM
+// ------------------------------------------------------------------------------
+
+model LibraryBook {
+  id              String         @id @default(uuid()) @db.Uuid
+  isbn            String         @unique // e.g. "978-0131103627"
+  title           String
+  author          String
+  publisher       String?
+  publicationYear Int?
+  category        String         // "Computer Science", "Artificial Intelligence", "Literature"
+  rackLocation    String         // e.g. "Rack-12, Shelf-B"
+  totalCopies     Int            @default(5)
+  availableCopies Int            @default(5)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  borrowRecords   BorrowRecord[]
+
+  @@index([isbn])
+  @@index([title])
+  @@index([category])
+  @@map("library_books")
+}
+
+model BorrowRecord {
+  id         String       @id @default(uuid()) @db.Uuid
+  bookId     String       @db.Uuid
+  book       LibraryBook  @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  userId     String       @db.Uuid
+  user       User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  issueDate  DateTime     @default(now())
+  dueDate    DateTime
+  returnDate DateTime?
+  fineAmount Decimal      @default(0.0) @db.Decimal(10, 2)
+  status     BorrowStatus @default(ISSUED)
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+
+  @@index([bookId])
+  @@index([userId])
+  @@index([status])
+  @@map("library_borrow_records")
+}
+
+// ------------------------------------------------------------------------------
+// 7. MODULE: CAMPUS TRANSPORT SYSTEM
+// ------------------------------------------------------------------------------
+
+model Bus {
+  id                String            @id @default(uuid()) @db.Uuid
+  busNumber         String            @unique // e.g. "LGU-BUS-01"
+  registrationPlate String            @unique // e.g. "LEA-2024-8891"
+  driverName        String
+  driverPhone       String
+  capacity          Int               @default(50)
+  status            BusStatus         @default(ACTIVE)
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  routes            BusRoute[]
+
+  @@map("transport_buses")
+}
+
+model BusRoute {
+  id               String            @id @default(uuid()) @db.Uuid
+  routeCode        String            @unique // e.g. "R-01"
+  routeName        String            // "Thokar Niaz Baig - Canal Road - LGU"
+  morningDeparture String            // "06:45 AM"
+  eveningDeparture String            // "04:15 PM"
+  stops            Json              // Array of { stopName: string, time: string, latitude: number, longitude: number }
+  busId            String?           @db.Uuid
+  bus              Bus?              @relation(fields: [busId], references: [id])
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  subscriptions    BusSubscription[]
+
+  @@map("transport_routes")
+}
+
+model BusSubscription {
+  id             String    @id @default(uuid()) @db.Uuid
+  userId         String    @db.Uuid
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  routeId        String    @db.Uuid
+  route          BusRoute  @relation(fields: [routeId], references: [id], onDelete: Cascade)
+  semester       Int
+  academicYear   String    @default("2026-2027")
+  passCardNumber String    @unique // e.g. "BUS-2026-0045"
+  feeStatus      String    @default("PAID") // PAID, PENDING
+  issuedAt       DateTime  @default(now())
+  expiresAt      DateTime
+
+  @@index([userId])
+  @@index([routeId])
+  @@map("transport_subscriptions")
+}
+
+// ------------------------------------------------------------------------------
+// 8. MODULE: ACCOUNTS & FEE CHALLANS
+// ------------------------------------------------------------------------------
+
+model FeeChallan {
+  id            String        @id @default(uuid()) @db.Uuid
+  challanNumber String        @unique // e.g. "LGU-CH-2026-89104"
+  studentId     String        @db.Uuid
+  student       User          @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  semester      Int
+  academicYear  String        @default("2026-2027")
+  issueDate     DateTime      @default(now())
+  dueDate       DateTime
+  totalAmount   Decimal       @db.Decimal(10, 2)
+  paidAmount    Decimal       @default(0.0) @db.Decimal(10, 2)
+  status        ChallanStatus @default(UNPAID)
+  paymentMethod PaymentMethod?
+  bankReference String?       // HBL or online transaction reference
+  paidAt        DateTime?
+  breakdownJson Json          // { tuitionFee: 85000, labCharges: 10000, examFee: 5000, libraryFee: 2000 }
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@index([studentId])
+  @@index([challanNumber])
+  @@index([status])
+  @@map("fee_challans")
+}
+
+// ------------------------------------------------------------------------------
+// 9. MODULE: CAMPUS CAFETERIA & DIGITAL CANTEEN
+// ------------------------------------------------------------------------------
+
+model CafeteriaItem {
+  id                     String               @id @default(uuid()) @db.Uuid
+  name                   String               // e.g. "Zinger Burger", "Chicken Biryani"
+  description            String?
+  category               String               // "Fast Food", "Meals", "Beverages", "Snacks"
+  price                  Decimal              @db.Decimal(10, 2)
+  isAvailable            Boolean              @default(true)
+  preparationTimeMinutes Int                  @default(15)
+  imageUrl               String?
+  createdAt              DateTime             @default(now())
+  updatedAt              DateTime             @updatedAt
+
+  orderItems             CafeteriaOrderItem[]
+
+  @@map("cafeteria_items")
+}
+
+model CafeteriaOrder {
+  id            String             @id @default(uuid()) @db.Uuid
+  orderNumber   String             @unique // e.g. "LGU-CAF-9021"
+  userId        String             @db.Uuid
+  user          User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  totalAmount   Decimal            @db.Decimal(10, 2)
+  status        OrderStatus        @default(PLACED)
+  paymentMethod PaymentMethod      @default(CASH_COUNTER)
+  paymentStatus OrderPaymentStatus @default(PENDING)
+  pickupCode    String             // e.g. "OTP-482"
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+
+  items         CafeteriaOrderItem[]
+
+  @@index([userId])
+  @@index([orderNumber])
+  @@map("cafeteria_orders")
+}
+
+model CafeteriaOrderItem {
+  id        String         @id @default(uuid()) @db.Uuid
+  orderId   String         @db.Uuid
+  order     CafeteriaOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  itemId    String         @db.Uuid
+  item      CafeteriaItem  @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  quantity  Int            @default(1)
+  unitPrice Decimal        @db.Decimal(10, 2)
+  subtotal  Decimal        @db.Decimal(10, 2)
+
+  @@index([orderId])
+  @@index([itemId])
+  @@map("cafeteria_order_items")
+}
+
+// ------------------------------------------------------------------------------
+// 10. MODULE: CAMPUS NOTICES & CIRCULARS
+// ------------------------------------------------------------------------------
+
+model Notice {
+  id             String         @id @default(uuid()) @db.Uuid
+  title          String
+  content        String         @db.Text
+  summary        String?        @db.VarChar(500)
+  category       NoticeCategory @default(GENERAL)
+  priority       NoticePriority @default(MEDIUM)
+  targetAudience TargetAudience @default(ALL)
+  isPinned       Boolean        @default(false)
+  attachmentUrl  String?
+  publishedAt    DateTime       @default(now())
+  expiresAt      DateTime?
+  authorId       String         @db.Uuid
+  author         User           @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  @@index([category])
+  @@index([priority])
+  @@index([targetAudience])
+  @@index([isPinned])
+  @@map("campus_notices")
+}
+
+// ------------------------------------------------------------------------------
+// 11. MODULE: SECURITY, RFID ACCESS & SMART GATE PASS
+// ------------------------------------------------------------------------------
+
+model GatePass {
+  id                String       @id @default(uuid()) @db.Uuid
+  userId            String       @db.Uuid
+  user              User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  passType          GatePassType @default(STUDENT_CARD)
+  rfidCardTag       String       @unique // e.g. "E280-1160-2000-0001"
+  vehicleNumber     String?      // e.g. "LEB-2023-1492"
+  isAllowedEntry    Boolean      @default(true)
+  lastScanTimestamp DateTime?
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  @@index([userId])
+  @@index([rfidCardTag])
+  @@map("gate_passes")
+}
