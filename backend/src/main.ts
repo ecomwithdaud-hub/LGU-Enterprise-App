@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe, Logger } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
+import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
@@ -18,12 +19,19 @@ async function bootstrap() {
     credentials: true,
   });
 
-  // Global Validation Pipe
+  // Global Exception Filter: Sanitize database / Prisma / unhandled errors & prevent SQL leaks
+  app.useGlobalFilters(new AllExceptionsFilter());
+
+  // Strict Global Input Validation Pipe
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
-      forbidNonWhitelisted: false,
+      forbidNonWhitelisted: true,
       transform: true,
+      transformOptions: {
+        enableImplicitConversion: true,
+      },
+      stopAtFirstError: true,
     }),
   );
 
@@ -36,6 +44,7 @@ async function bootstrap() {
     .setVersion('1.0')
     .addBearerAuth()
     .addTag('Authentication', 'Session tokens & identity management')
+    .addTag('Student Academic Portal', 'Student dashboard, academic progress, fee ledger and attendance')
     .addTag('Timetables & Scheduling', 'Room, teacher, and student section timetable matrices')
     .addTag('Departments & Faculties', 'Academic departments, degrees, courses and venues')
     .addTag('Users Management', 'Faculty, student profiles, and administrative staff')

@@ -85,7 +85,8 @@ export default function AdminDashboardPage() {
           </p>
           <div className="flex flex-wrap gap-3 text-xs font-mono">
             <span className="bg-slate-800 text-emerald-400 px-3 py-1.5 rounded border border-slate-700">Swagger UI: /api/docs</span>
-            <span className="bg-slate-800 text-blue-400 px-3 py-1.5 rounded border border-slate-700">Auth: /api/v1/auth/login</span>
+            <span className="bg-slate-800 text-blue-400 px-3 py-1.5 rounded border border-slate-700">Student Portal: /api/v1/students/dashboard/me</span>
+            <span className="bg-slate-800 text-teal-400 px-3 py-1.5 rounded border border-slate-700">IDOR Guard: /api/v1/students/dashboard/:userId</span>
             <span className="bg-slate-800 text-amber-400 px-3 py-1.5 rounded border border-slate-700">Timetables: /api/v1/timetables/my-schedule</span>
             <span className="bg-slate-800 text-purple-400 px-3 py-1.5 rounded border border-slate-700">Prisma Studio: npx prisma studio</span>
           </div>

@@ -18,8 +18,13 @@ export class AccountsController {
   }
 
   @Get('challans/:challanNumber')
-  @ApiOperation({ summary: 'Get specific fee challan voucher by challan number' })
-  async getChallanById(@Param('challanNumber') challanNumber: string) {
-    return this.accountsService.getChallanById(challanNumber);
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get specific fee challan voucher by challan number (with IDOR protection)' })
+  async getChallanById(
+    @Param('challanNumber') challanNumber: string,
+    @CurrentUser() user: any,
+  ) {
+    return this.accountsService.getChallanById(challanNumber, user);
   }
 }

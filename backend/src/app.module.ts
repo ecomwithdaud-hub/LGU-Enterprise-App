@@ -10,6 +10,7 @@ import { TransportModule } from './modules/transport/transport.module';
 import { LibraryModule } from './modules/library/library.module';
 import { AccountsModule } from './modules/accounts/accounts.module';
 import { CafeteriaModule } from './modules/cafeteria/cafeteria.module';
+import { StudentsModule } from './modules/students/students.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { CafeteriaModule } from './modules/cafeteria/cafeteria.module';
     PrismaModule,
     AuthModule,
     UsersModule,
+    StudentsModule,
     DepartmentsModule,
     TimetablesModule,
     NoticesModule,

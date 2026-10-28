@@ -1,5 +1,6 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { RoleType } from '../../common/enums/role.enum';
 
 @Injectable()
 export class AccountsService {
@@ -12,7 +13,7 @@ export class AccountsService {
     });
   }
 
-  async getChallanById(challanNumber: string) {
+  async getChallanById(challanNumber: string, requestingUser?: any) {
     const challan = await this.prisma.feeChallan.findUnique({
       where: { challanNumber },
       include: {
@@ -32,7 +33,18 @@ export class AccountsService {
         },
       },
     });
+
     if (!challan) throw new NotFoundException(`Fee challan #${challanNumber} not found`);
+
+    // Strict IDOR Protection:
+    if (requestingUser && requestingUser.role?.type === RoleType.STUDENT) {
+      if (challan.studentId !== requestingUser.id) {
+        throw new ForbiddenException(
+          'Access Denied (IDOR Protection): You cannot inspect or download another student’s fee challan.',
+        );
+      }
+    }
+
     return challan;
   }
 }

@@ -4,6 +4,7 @@ export interface User {
   firstName: string;
   lastName: string;
   phone?: string;
+  avatarUrl?: string;
   role: {
     type: string;
     name: string;
@@ -29,6 +30,82 @@ export interface User {
     qualification: string;
     officeRoom?: string;
   };
+}
+
+export interface StudentDashboardData {
+  success: boolean;
+  student: {
+    userId: string;
+    fullName: string;
+    email: string;
+    phone?: string;
+    avatarUrl?: string;
+    rollNumber: string;
+    registrationNumber: string;
+    programName: string;
+    programCode: string;
+    departmentName: string;
+  };
+  academicSummary: {
+    enrolledSemester: string;
+    classSection: string;
+    cumulativeCgpa: number;
+    academicYear: string;
+    degreeProgressPercentage: number;
+  };
+  financialSummary: {
+    totalOutstandingDues: number;
+    formattedOutstandingDues: string;
+    totalBilled: number;
+    formattedTotalBilled: string;
+    totalPaid: number;
+    formattedTotalPaid: string;
+    hasPendingDues: boolean;
+  };
+  studentChallansLedger: Array<{
+    id: string;
+    challanNumber: string;
+    semesterSession: string;
+    challanType: string;
+    issueDate: string;
+    dueDate: string;
+    paidDate?: string | null;
+    status: 'Paid' | 'Valid' | 'Pending' | 'Overdue';
+    rawStatus: string;
+    amount: number;
+    paidAmount: number;
+    balance: number;
+    bankReference?: string | null;
+    breakdown?: Record<string, any>;
+  }>;
+  currentEnrolledCourses: Array<{
+    courseCode: string;
+    courseName: string;
+    teacherName: string;
+    type: 'Theory' | 'Lab';
+    creditHours: number;
+    totalClasses: number;
+    presentClasses: number;
+    absentClasses: number;
+    attendancePercentage: number;
+    status: 'ELIGIBLE' | 'WARNING_LOW';
+  }>;
+  academicCalendar: Array<{
+    id: string;
+    title: string;
+    date: string;
+    category: string;
+    daysLeft: number;
+    description: string;
+  }>;
+  recentNotices?: Array<{
+    id: string;
+    title: string;
+    summary?: string;
+    category: string;
+    priority: string;
+    publishedAt: string;
+  }>;
 }
 
 export interface TimetableSlot {

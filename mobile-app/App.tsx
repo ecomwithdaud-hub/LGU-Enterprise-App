@@ -1,7 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { StyleSheet, Text, View, SafeAreaView, StatusBar, ScrollView, TouchableOpacity } from 'react-native';
+import StudentDashboardScreen from './src/screens/StudentDashboardScreen';
 
 export default function App() {
+  const [currentScreen, setCurrentScreen] = useState<'STUDENT_PORTAL' | 'HUB'>('STUDENT_PORTAL');
+
   const modules = [
     { title: '📅 Class Timetables', desc: 'Real-time clash-free schedule matrix' },
     { title: '🚌 Transport Tracking', desc: 'Live bus routes, stops & digital pass' },
@@ -10,6 +13,29 @@ export default function App() {
     { title: '🍔 Campus Cafeteria', desc: 'Digital canteen menu & order queue' },
     { title: '📢 Campus Notices', desc: 'Official academic circulars & alerts' },
   ];
+
+  if (currentScreen === 'STUDENT_PORTAL') {
+    return (
+      <View style={{ flex: 1 }}>
+        <StudentDashboardScreen />
+        {/* Bottom Floating Navigation Switcher for Developer Preview */}
+        <View style={styles.floatingBar}>
+          <TouchableOpacity
+            style={[styles.floatingBtn, styles.floatingBtnActive]}
+            onPress={() => setCurrentScreen('STUDENT_PORTAL')}
+          >
+            <Text style={styles.floatingBtnTextActive}>🎓 Student Portal</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.floatingBtn}
+            onPress={() => setCurrentScreen('HUB')}
+          >
+            <Text style={styles.floatingBtnText}>🏛️ Campus Hub</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -26,18 +52,45 @@ export default function App() {
           <Text style={styles.welcomeDesc}>
             All-in-one ecosystem for students, faculty members, and administrative departments.
           </Text>
+          <TouchableOpacity
+            style={styles.portalActionBtn}
+            onPress={() => setCurrentScreen('STUDENT_PORTAL')}
+          >
+            <Text style={styles.portalActionBtnText}>Launch Student Portal Dashboard →</Text>
+          </TouchableOpacity>
         </View>
 
         <Text style={styles.sectionHeader}>Campus Modules</Text>
         <View style={styles.grid}>
           {modules.map((m, idx) => (
-            <TouchableOpacity key={idx} style={styles.card} activeOpacity={0.8}>
+            <TouchableOpacity
+              key={idx}
+              style={styles.card}
+              activeOpacity={0.8}
+              onPress={() => m.title.includes('Fee') || m.title.includes('Timetables') ? setCurrentScreen('STUDENT_PORTAL') : null}
+            >
               <Text style={styles.cardTitle}>{m.title}</Text>
               <Text style={styles.cardDesc}>{m.desc}</Text>
             </TouchableOpacity>
           ))}
         </View>
       </ScrollView>
+
+      {/* Bottom Floating Navigation Switcher for Developer Preview */}
+      <View style={styles.floatingBar}>
+        <TouchableOpacity
+          style={styles.floatingBtn}
+          onPress={() => setCurrentScreen('STUDENT_PORTAL')}
+        >
+          <Text style={styles.floatingBtnText}>🎓 Student Portal</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.floatingBtn, styles.floatingBtnActive]}
+          onPress={() => setCurrentScreen('HUB')}
+        >
+          <Text style={styles.floatingBtnTextActive}>🏛️ Campus Hub</Text>
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 }
@@ -79,6 +132,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 16,
+    paddingBottom: 80,
   },
   welcomeBanner: {
     backgroundColor: '#ffffff',
@@ -98,6 +152,19 @@ const styles = StyleSheet.create({
     color: '#64748b',
     marginTop: 6,
     lineHeight: 18,
+  },
+  portalActionBtn: {
+    marginTop: 14,
+    backgroundColor: '#0f2b48',
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderRadius: 8,
+    alignSelf: 'flex-start',
+  },
+  portalActionBtnText: {
+    color: '#ffffff',
+    fontSize: 13,
+    fontWeight: '600',
   },
   sectionHeader: {
     fontSize: 16,
@@ -124,5 +191,41 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#64748b',
     marginTop: 4,
+  },
+  floatingBar: {
+    position: 'absolute',
+    bottom: 16,
+    left: 20,
+    right: 20,
+    backgroundColor: '#0a1d33',
+    flexDirection: 'row',
+    borderRadius: 30,
+    padding: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    elevation: 8,
+    borderWidth: 1,
+    borderColor: '#1e3a5f',
+  },
+  floatingBtn: {
+    flex: 1,
+    paddingVertical: 10,
+    alignItems: 'center',
+    borderRadius: 25,
+  },
+  floatingBtnActive: {
+    backgroundColor: '#10b981',
+  },
+  floatingBtnText: {
+    color: '#94a3b8',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  floatingBtnTextActive: {
+    color: '#ffffff',
+    fontSize: 12,
+    fontWeight: '700',
   },
 });
