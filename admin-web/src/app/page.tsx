@@ -11,9 +11,9 @@ export default function AdminDashboardPage() {
   const modules = [
     { name: 'Timetables & Venues', desc: 'Manage room assignments, clashes, and teacher course matrix', badge: 'Active' },
     { name: 'Student Information System (SIS)', desc: 'Roll numbers, section enrollments, CGPA records & transcripts', badge: 'Active' },
+    { name: 'Central & Digital Library', desc: '15,000+ catalog, digital lab PC slots & HEC e-resources', badge: 'Active' },
     { name: 'Accounts & Fee Challans', desc: 'HBL / 1Bill voucher generation, bank reconciliation & ledger', badge: 'Active' },
     { name: 'Fleet & Transport Logistics', desc: 'Live bus tracking, GPS route optimization, and digital bus passes', badge: 'Active' },
-    { name: 'Central Library System', desc: 'OPAC book catalog, RFID shelf location, and student borrow ledger', badge: 'Active' },
     { name: 'Campus Cafeteria & POS', desc: 'Digital canteen ordering, counter queue management and menu control', badge: 'Active' },
   ];
 
@@ -87,6 +87,8 @@ export default function AdminDashboardPage() {
             <span className="bg-slate-800 text-emerald-400 px-3 py-1.5 rounded border border-slate-700">Swagger UI: /api/docs</span>
             <span className="bg-slate-800 text-blue-400 px-3 py-1.5 rounded border border-slate-700">Student Portal: /api/v1/students/dashboard/me</span>
             <span className="bg-slate-800 text-teal-400 px-3 py-1.5 rounded border border-slate-700">IDOR Guard: /api/v1/students/dashboard/:userId</span>
+            <span className="bg-slate-800 text-rose-400 px-3 py-1.5 rounded border border-slate-700">Central Library: /api/v1/library/books</span>
+            <span className="bg-slate-800 text-cyan-400 px-3 py-1.5 rounded border border-slate-700">Digital Labs: /api/v1/library/digital-workstations</span>
             <span className="bg-slate-800 text-amber-400 px-3 py-1.5 rounded border border-slate-700">Timetables: /api/v1/timetables/my-schedule</span>
             <span className="bg-slate-800 text-purple-400 px-3 py-1.5 rounded border border-slate-700">Prisma Studio: npx prisma studio</span>
           </div>

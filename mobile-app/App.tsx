@@ -1,97 +1,116 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, View, SafeAreaView, StatusBar, ScrollView, TouchableOpacity } from 'react-native';
 import StudentDashboardScreen from './src/screens/StudentDashboardScreen';
+import LibraryScreen from './src/screens/LibraryScreen';
 
 export default function App() {
-  const [currentScreen, setCurrentScreen] = useState<'STUDENT_PORTAL' | 'HUB'>('STUDENT_PORTAL');
+  const [currentScreen, setCurrentScreen] = useState<'STUDENT_PORTAL' | 'LIBRARY' | 'HUB'>('STUDENT_PORTAL');
 
   const modules = [
-    { title: '📅 Class Timetables', desc: 'Real-time clash-free schedule matrix' },
-    { title: '🚌 Transport Tracking', desc: 'Live bus routes, stops & digital pass' },
-    { title: '💳 Fee Challans', desc: 'HBL / 1Bill voucher & online ledger' },
-    { title: '📚 Central Library', desc: 'ISBN catalog & active borrow status' },
-    { title: '🍔 Campus Cafeteria', desc: 'Digital canteen menu & order queue' },
-    { title: '📢 Campus Notices', desc: 'Official academic circulars & alerts' },
+    { id: 'timetables', title: '📅 Class Timetables', desc: 'Real-time clash-free schedule matrix', target: 'STUDENT_PORTAL' },
+    { id: 'library', title: '📚 Central Library', desc: '15,000+ catalog, digital labs & e-resources', target: 'LIBRARY' },
+    { id: 'fees', title: '💳 Fee Challans', desc: 'HBL / 1Bill voucher & online ledger', target: 'STUDENT_PORTAL' },
+    { id: 'transport', title: '🚌 Transport Tracking', desc: 'Live bus routes, stops & digital pass', target: 'HUB' },
+    { id: 'cafeteria', title: '🍔 Campus Cafeteria', desc: 'Digital canteen menu & order queue', target: 'HUB' },
+    { id: 'notices', title: '📢 Campus Notices', desc: 'Official academic circulars & alerts', target: 'HUB' },
   ];
 
-  if (currentScreen === 'STUDENT_PORTAL') {
-    return (
-      <View style={{ flex: 1 }}>
-        <StudentDashboardScreen />
-        {/* Bottom Floating Navigation Switcher for Developer Preview */}
-        <View style={styles.floatingBar}>
-          <TouchableOpacity
-            style={[styles.floatingBtn, styles.floatingBtnActive]}
-            onPress={() => setCurrentScreen('STUDENT_PORTAL')}
-          >
-            <Text style={styles.floatingBtnTextActive}>🎓 Student Portal</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.floatingBtn}
-            onPress={() => setCurrentScreen('HUB')}
-          >
-            <Text style={styles.floatingBtnText}>🏛️ Campus Hub</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    );
-  }
+  const renderScreen = () => {
+    switch (currentScreen) {
+      case 'STUDENT_PORTAL':
+        return <StudentDashboardScreen />;
+      case 'LIBRARY':
+        return <LibraryScreen />;
+      case 'HUB':
+      default:
+        return (
+          <SafeAreaView style={styles.container}>
+            <StatusBar barStyle="light-content" backgroundColor="#0f2b48" />
+            <View style={styles.header}>
+              <Text style={styles.headerSubtitle}>Lahore Garrison University</Text>
+              <Text style={styles.headerTitle}>LGU Super App</Text>
+              <Text style={styles.headerStatus}>Enterprise Mobile Portal • Connected</Text>
+            </View>
+
+            <ScrollView style={styles.scrollArea} contentContainerStyle={styles.scrollContent}>
+              <View style={styles.welcomeBanner}>
+                <Text style={styles.welcomeTitle}>Welcome to LGU Campus Life</Text>
+                <Text style={styles.welcomeDesc}>
+                  All-in-one ecosystem for students, faculty members, and administrative departments.
+                </Text>
+                <View style={styles.actionRow}>
+                  <TouchableOpacity
+                    style={styles.portalActionBtn}
+                    onPress={() => setCurrentScreen('STUDENT_PORTAL')}
+                  >
+                    <Text style={styles.portalActionBtnText}>Student Portal →</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.portalActionBtn, styles.libraryActionBtn]}
+                    onPress={() => setCurrentScreen('LIBRARY')}
+                  >
+                    <Text style={styles.portalActionBtnText}>Central Library →</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              <Text style={styles.sectionHeader}>Campus Modules</Text>
+              <View style={styles.grid}>
+                {modules.map((m) => (
+                  <TouchableOpacity
+                    key={m.id}
+                    style={styles.card}
+                    activeOpacity={0.8}
+                    onPress={() => {
+                      if (m.target === 'STUDENT_PORTAL') setCurrentScreen('STUDENT_PORTAL');
+                      else if (m.target === 'LIBRARY') setCurrentScreen('LIBRARY');
+                    }}
+                  >
+                    <Text style={styles.cardTitle}>{m.title}</Text>
+                    <Text style={styles.cardDesc}>{m.desc}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </ScrollView>
+          </SafeAreaView>
+        );
+    }
+  };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#0f2b48" />
-      <View style={styles.header}>
-        <Text style={styles.headerSubtitle}>Lahore Garrison University</Text>
-        <Text style={styles.headerTitle}>LGU Super App</Text>
-        <Text style={styles.headerStatus}>Enterprise Mobile Portal • Connected</Text>
-      </View>
-
-      <ScrollView style={styles.scrollArea} contentContainerStyle={styles.scrollContent}>
-        <View style={styles.welcomeBanner}>
-          <Text style={styles.welcomeTitle}>Welcome to LGU Campus Life</Text>
-          <Text style={styles.welcomeDesc}>
-            All-in-one ecosystem for students, faculty members, and administrative departments.
-          </Text>
-          <TouchableOpacity
-            style={styles.portalActionBtn}
-            onPress={() => setCurrentScreen('STUDENT_PORTAL')}
-          >
-            <Text style={styles.portalActionBtnText}>Launch Student Portal Dashboard →</Text>
-          </TouchableOpacity>
-        </View>
-
-        <Text style={styles.sectionHeader}>Campus Modules</Text>
-        <View style={styles.grid}>
-          {modules.map((m, idx) => (
-            <TouchableOpacity
-              key={idx}
-              style={styles.card}
-              activeOpacity={0.8}
-              onPress={() => m.title.includes('Fee') || m.title.includes('Timetables') ? setCurrentScreen('STUDENT_PORTAL') : null}
-            >
-              <Text style={styles.cardTitle}>{m.title}</Text>
-              <Text style={styles.cardDesc}>{m.desc}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </ScrollView>
+    <View style={{ flex: 1, backgroundColor: '#0a1d33' }}>
+      {renderScreen()}
 
       {/* Bottom Floating Navigation Switcher for Developer Preview */}
       <View style={styles.floatingBar}>
         <TouchableOpacity
-          style={styles.floatingBtn}
+          style={[styles.floatingBtn, currentScreen === 'STUDENT_PORTAL' && styles.floatingBtnActive]}
           onPress={() => setCurrentScreen('STUDENT_PORTAL')}
         >
-          <Text style={styles.floatingBtnText}>🎓 Student Portal</Text>
+          <Text style={[styles.floatingBtnText, currentScreen === 'STUDENT_PORTAL' && styles.floatingBtnTextActive]}>
+            🎓 Student
+          </Text>
         </TouchableOpacity>
+
         <TouchableOpacity
-          style={[styles.floatingBtn, styles.floatingBtnActive]}
+          style={[styles.floatingBtn, currentScreen === 'LIBRARY' && styles.floatingBtnActive]}
+          onPress={() => setCurrentScreen('LIBRARY')}
+        >
+          <Text style={[styles.floatingBtnText, currentScreen === 'LIBRARY' && styles.floatingBtnTextActive]}>
+            📚 Library
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.floatingBtn, currentScreen === 'HUB' && styles.floatingBtnActive]}
           onPress={() => setCurrentScreen('HUB')}
         >
-          <Text style={styles.floatingBtnTextActive}>🏛️ Campus Hub</Text>
+          <Text style={[styles.floatingBtnText, currentScreen === 'HUB' && styles.floatingBtnTextActive]}>
+            🏛️ Hub
+          </Text>
         </TouchableOpacity>
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -132,7 +151,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 16,
-    paddingBottom: 80,
+    paddingBottom: 90,
   },
   welcomeBanner: {
     backgroundColor: '#ffffff',
@@ -153,13 +172,19 @@ const styles = StyleSheet.create({
     marginTop: 6,
     lineHeight: 18,
   },
-  portalActionBtn: {
+  actionRow: {
+    flexDirection: 'row',
+    gap: 10,
     marginTop: 14,
+  },
+  portalActionBtn: {
     backgroundColor: '#0f2b48',
     paddingVertical: 10,
     paddingHorizontal: 14,
     borderRadius: 8,
-    alignSelf: 'flex-start',
+  },
+  libraryActionBtn: {
+    backgroundColor: '#10b981',
   },
   portalActionBtnText: {
     color: '#ffffff',

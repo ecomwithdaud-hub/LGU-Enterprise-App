@@ -165,3 +165,59 @@ export interface FeeChallan {
   paidAmount: number;
   status: 'PAID' | 'UNPAID' | 'OVERDUE';
 }
+
+export interface LibraryBookItem {
+  id: string;
+  isbn: string;
+  title: string;
+  author: string;
+  category: string;
+  rackLocation: string;
+  totalCopies: number;
+  availableCopies: number;
+  publicationYear?: number;
+  publisher?: string;
+}
+
+export interface BorrowedBookItem {
+  recordId: string;
+  bookId: string;
+  title: string;
+  author: string;
+  isbn: string;
+  rackLocation: string;
+  issueDate: string;
+  dueDate: string;
+  daysRemaining: number;
+  isOverdue: boolean;
+  overdueDays: number;
+  fineAmount: number;
+  status: 'ISSUED' | 'OVERDUE' | 'RETURNED';
+}
+
+export interface DigitalWorkstationLab {
+  labId: string;
+  name: string;
+  location: string;
+  totalPCs: number;
+  occupiedPCs: number;
+  availablePCs: number;
+  hardwareSpecs: string;
+  operatingSystem: string;
+  rules: string;
+  timeSlotsAvailable: Array<{
+    slot: string;
+    status: 'AVAILABLE' | 'FEW_LEFT' | 'FULL';
+    openSeats: number;
+  }>;
+}
+
+export interface EResourceItem {
+  id: string;
+  name: string;
+  description: string;
+  url: string;
+  badge: string;
+  category: string;
+  coverage: string;
+}

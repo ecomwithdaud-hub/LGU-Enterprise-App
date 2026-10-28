@@ -1,5 +1,11 @@
 import axios from 'axios';
-import { StudentDashboardData } from '../types';
+import {
+  StudentDashboardData,
+  LibraryBookItem,
+  BorrowedBookItem,
+  DigitalWorkstationLab,
+  EResourceItem,
+} from '../types';
 
 // Change to your machine LAN IP or localhost for Expo development
 export const API_BASE_URL = 'http://localhost:4000/api/v1';
@@ -20,7 +26,9 @@ export const setAuthToken = (token: string | null) => {
   }
 };
 
-// Fallback high-fidelity mock data matching official LGU Portal specification
+// ==============================================================================
+// 1. STUDENT PORTAL DATA
+// ==============================================================================
 export const MOCK_STUDENT_DASHBOARD: StudentDashboardData = {
   success: true,
   student: {
@@ -232,5 +240,338 @@ export const fetchStudentDashboard = async (userId?: string): Promise<StudentDas
   } catch (error) {
     console.warn('API call failed or server offline; falling back to high-fidelity mock data:', error);
     return MOCK_STUDENT_DASHBOARD;
+  }
+};
+
+// ==============================================================================
+// 2. CENTRAL LIBRARY & DIGITAL WORKSTATIONS DATA
+// ==============================================================================
+export const MOCK_LIBRARY_BOOKS: LibraryBookItem[] = [
+  {
+    id: 'book-01',
+    isbn: '978-0131103627',
+    title: 'The C Programming Language (2nd Edition)',
+    author: 'Brian W. Kernighan, Dennis M. Ritchie',
+    category: 'Computer Science',
+    rackLocation: 'Rack CS-01, Shelf-A',
+    totalCopies: 12,
+    availableCopies: 8,
+    publicationYear: 1988,
+    publisher: 'Prentice Hall',
+  },
+  {
+    id: 'book-02',
+    isbn: '978-0262033848',
+    title: 'Introduction to Algorithms (CLRS 4th Edition)',
+    author: 'Thomas H. Cormen, Charles E. Leiserson',
+    category: 'Computer Science',
+    rackLocation: 'Rack CS-03, Shelf-B',
+    totalCopies: 20,
+    availableCopies: 14,
+    publicationYear: 2022,
+    publisher: 'MIT Press',
+  },
+  {
+    id: 'book-03',
+    isbn: '978-0132350884',
+    title: 'Clean Code: Agile Software Craftsmanship',
+    author: 'Robert C. Martin (Uncle Bob)',
+    category: 'Software Engineering',
+    rackLocation: 'Rack SE-02, Shelf-A',
+    totalCopies: 15,
+    availableCopies: 9,
+    publicationYear: 2008,
+    publisher: 'Pearson',
+  },
+  {
+    id: 'book-04',
+    isbn: '978-0201633610',
+    title: 'Design Patterns: Elements of Reusable OO Software',
+    author: 'Erich Gamma, Richard Helm',
+    category: 'Software Engineering',
+    rackLocation: 'Rack SE-04, Shelf-C',
+    totalCopies: 10,
+    availableCopies: 6,
+    publicationYear: 1994,
+    publisher: 'Addison-Wesley',
+  },
+  {
+    id: 'book-05',
+    isbn: '978-0262035613',
+    title: 'Deep Learning (Adaptive Computation & ML)',
+    author: 'Ian Goodfellow, Yoshua Bengio',
+    category: 'Artificial Intelligence',
+    rackLocation: 'Rack AI-01, Shelf-D',
+    totalCopies: 14,
+    availableCopies: 11,
+    publicationYear: 2016,
+    publisher: 'MIT Press',
+  },
+  {
+    id: 'book-06',
+    isbn: '978-0134685991',
+    title: 'Artificial Intelligence: A Modern Approach (4th Ed)',
+    author: 'Stuart Russell, Peter Norvig',
+    category: 'Artificial Intelligence',
+    rackLocation: 'Rack AI-03, Shelf-B',
+    totalCopies: 18,
+    availableCopies: 7,
+    publicationYear: 2020,
+    publisher: 'Pearson',
+  },
+  {
+    id: 'book-07',
+    isbn: '978-1491950296',
+    title: 'Designing Data-Intensive Applications',
+    author: 'Martin Kleppmann',
+    category: 'Distributed Systems',
+    rackLocation: 'Rack CS-08, Shelf-A',
+    totalCopies: 12,
+    availableCopies: 5,
+    publicationYear: 2017,
+    publisher: "O'Reilly Media",
+  },
+];
+
+export const MOCK_MY_BORROWED_BOOKS: {
+  studentId: string;
+  activeLoansCount: number;
+  totalFinesAccrued: number;
+  activeLoans: BorrowedBookItem[];
+  loanHistory: any[];
+} = {
+  studentId: 'c64a51eb-0cb3-4217-bf24-2c24ef84c71e',
+  activeLoansCount: 2,
+  totalFinesAccrued: 0.0,
+  activeLoans: [
+    {
+      recordId: 'rec-01',
+      bookId: 'book-02',
+      title: 'Introduction to Algorithms (CLRS 4th Edition)',
+      author: 'Thomas H. Cormen, Charles E. Leiserson',
+      isbn: '978-0262033848',
+      rackLocation: 'Rack CS-03, Shelf-B',
+      issueDate: '2026-10-18',
+      dueDate: '2026-11-01',
+      daysRemaining: 4,
+      isOverdue: false,
+      overdueDays: 0,
+      fineAmount: 0.0,
+      status: 'ISSUED',
+    },
+    {
+      recordId: 'rec-02',
+      bookId: 'book-03',
+      title: 'Clean Code: Agile Software Craftsmanship',
+      author: 'Robert C. Martin (Uncle Bob)',
+      isbn: '978-0132350884',
+      rackLocation: 'Rack SE-02, Shelf-A',
+      issueDate: '2026-10-22',
+      dueDate: '2026-11-05',
+      daysRemaining: 8,
+      isOverdue: false,
+      overdueDays: 0,
+      fineAmount: 0.0,
+      status: 'ISSUED',
+    },
+  ],
+  loanHistory: [
+    {
+      recordId: 'rec-hist-01',
+      bookId: 'book-01',
+      title: 'The C Programming Language (2nd Edition)',
+      author: 'Brian W. Kernighan, Dennis M. Ritchie',
+      isbn: '978-0131103627',
+      issueDate: '2026-09-05',
+      dueDate: '2026-09-19',
+      returnDate: '2026-09-18',
+      fineAmount: 0.0,
+      status: 'RETURNED',
+    },
+  ],
+};
+
+export const MOCK_WORKSTATION_LABS: DigitalWorkstationLab[] = [
+  {
+    labId: 'LAB-01',
+    name: 'Sir Syed AI & High-Performance Computing Lab',
+    location: 'Central Library 2nd Floor, Wing A',
+    totalPCs: 30,
+    occupiedPCs: 12,
+    availablePCs: 18,
+    hardwareSpecs: 'Intel Core i9 14th Gen, 64GB DDR5, NVIDIA RTX 4080 (16GB), Dual 27" 4K',
+    operatingSystem: 'Ubuntu 24.04 LTS (PyTorch, TensorFlow, CUDA 12.4)',
+    rules: 'Reserved for Deep Learning, Data Science, AI & FYP research.',
+    timeSlotsAvailable: [
+      { slot: '08:30 - 10:30', status: 'AVAILABLE', openSeats: 8 },
+      { slot: '10:30 - 12:30', status: 'FEW_LEFT', openSeats: 3 },
+      { slot: '13:00 - 15:00', status: 'AVAILABLE', openSeats: 12 },
+      { slot: '15:00 - 17:00', status: 'AVAILABLE', openSeats: 14 },
+    ],
+  },
+  {
+    labId: 'LAB-02',
+    name: 'Digital Archive & Scientific Repository Lab',
+    location: 'Central Library 2nd Floor, Wing B',
+    totalPCs: 30,
+    occupiedPCs: 7,
+    availablePCs: 23,
+    hardwareSpecs: 'Intel Core i7 13th Gen, 32GB RAM, Dual IPS 24" Monitors',
+    operatingSystem: 'Windows 11 Enterprise (MATLAB, SPSS, LaTeX, EndNote)',
+    rules: 'Open for literature review, thesis writing, journal paper research.',
+    timeSlotsAvailable: [
+      { slot: '08:30 - 10:30', status: 'AVAILABLE', openSeats: 15 },
+      { slot: '10:30 - 12:30', status: 'AVAILABLE', openSeats: 11 },
+      { slot: '13:00 - 15:00', status: 'AVAILABLE', openSeats: 18 },
+      { slot: '15:00 - 17:00', status: 'AVAILABLE', openSeats: 20 },
+    ],
+  },
+];
+
+export const MOCK_E_RESOURCES: EResourceItem[] = [
+  {
+    id: 'eres-01',
+    name: 'HEC National Digital Library',
+    description: 'Access to over 20,000 international peer-reviewed journals and 75,000+ electronic books.',
+    url: 'https://www.digitallibrary.edu.pk',
+    badge: 'HEC Sponsored',
+    category: 'MULTI_DISCIPLINARY',
+    coverage: 'Full-text journals across all disciplines',
+  },
+  {
+    id: 'eres-02',
+    name: 'IEEE Xplore Digital Library',
+    description: 'Flagship repository for electrical engineering, computer science, and electronics.',
+    url: 'https://ieeexplore.ieee.org',
+    badge: 'High Impact',
+    category: 'ENGINEERING_AND_CS',
+    coverage: '5M+ conference papers & IEEE transactions',
+  },
+  {
+    id: 'eres-03',
+    name: 'ACM Digital Library',
+    description: 'Association for Computing Machinery flagship collection of computing research.',
+    url: 'https://dl.acm.org',
+    badge: 'Core CS',
+    category: 'COMPUTER_SCIENCE',
+    coverage: 'SIGGRAPH, SIGCOMM, SIGMOD proceedings',
+  },
+  {
+    id: 'eres-04',
+    name: 'ScienceDirect (Elsevier)',
+    description: 'Leading database of scientific, technical, and medical research papers.',
+    url: 'https://www.sciencedirect.com',
+    badge: 'Peer-Reviewed',
+    category: 'SCIENCE_AND_TECH',
+    coverage: '18M+ articles across 2,500+ journals',
+  },
+  {
+    id: 'eres-05',
+    name: 'SpringerLink Academic',
+    description: 'Research repository covering physics, mathematics, business, and CS.',
+    url: 'https://link.springer.com',
+    badge: 'Springer Nature',
+    category: 'MULTI_DISCIPLINARY',
+    coverage: '3,000+ journals and 300,000+ books',
+  },
+  {
+    id: 'eres-06',
+    name: 'LGU Institutional Repository & Past Papers',
+    description: 'Official university digital archive hosting theses, faculty publications, and past exams.',
+    url: 'https://repository.lgu.edu.pk',
+    badge: 'LGU Internal',
+    category: 'UNIVERSITY_ARCHIVE',
+    coverage: 'Faculty research outputs, capstone projects, past exams',
+  },
+];
+
+export const fetchLibraryBooks = async (search?: string, category?: string): Promise<{ data: LibraryBookItem[]; totalCatalogSize: number }> => {
+  try {
+    const params: Record<string, string> = {};
+    if (search) params.search = search;
+    if (category) params.category = category;
+    const response = await apiClient.get('/library/books', { params });
+    return response.data;
+  } catch {
+    let filtered = MOCK_LIBRARY_BOOKS;
+    if (category) {
+      filtered = filtered.filter((b) => b.category.toLowerCase().includes(category.toLowerCase()));
+    }
+    if (search) {
+      const q = search.toLowerCase();
+      filtered = filtered.filter(
+        (b) =>
+          b.title.toLowerCase().includes(q) ||
+          b.author.toLowerCase().includes(q) ||
+          b.isbn.includes(q) ||
+          b.rackLocation.toLowerCase().includes(q),
+      );
+    }
+    return { data: filtered, totalCatalogSize: 15420 };
+  }
+};
+
+export const fetchMyBorrowedBooks = async (studentId?: string) => {
+  try {
+    const endpoint = studentId ? `/library/borrowed/${studentId}` : `/library/my-borrows`;
+    const response = await apiClient.get(endpoint);
+    return response.data;
+  } catch {
+    return MOCK_MY_BORROWED_BOOKS;
+  }
+};
+
+export const fetchDigitalWorkstations = async () => {
+  try {
+    const response = await apiClient.get('/library/digital-workstations');
+    return response.data;
+  } catch {
+    return {
+      summary: {
+        totalWorkstations: 60,
+        activeUsers: 19,
+        availableSlots: 41,
+        maintenanceCount: 2,
+        networkSpeed: '1 Gbps Dedicated Fiber (PERN / HEC)',
+      },
+      labs: MOCK_WORKSTATION_LABS,
+    };
+  }
+};
+
+export const reserveWorkstationSlot = async (
+  workstationId: string,
+  date: string,
+  timeSlot: string,
+  purpose?: string,
+) => {
+  try {
+    const response = await apiClient.post('/library/workstation/reserve', {
+      workstationId,
+      date,
+      timeSlot,
+      purpose,
+    });
+    return response.data;
+  } catch {
+    return {
+      success: true,
+      message: `Workstation reservation confirmed for ${timeSlot} on ${date}.`,
+      reservation: {
+        reservationCode: `LGU-WS-${Date.now().toString().slice(-4)}-891`,
+        allocatedDesk: `Desk-${workstationId || '12'} (Sir Syed AI Lab)`,
+        timeSlot,
+        date,
+      },
+    };
+  }
+};
+
+export const fetchEResources = async (): Promise<EResourceItem[]> => {
+  try {
+    const response = await apiClient.get('/library/e-resources');
+    return response.data.eResources || MOCK_E_RESOURCES;
+  } catch {
+    return MOCK_E_RESOURCES;
   }
 };

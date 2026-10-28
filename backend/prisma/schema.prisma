@@ -223,6 +223,7 @@ model User {
   cafeteriaOrders  CafeteriaOrder[]
   authoredNotices  Notice[]
   gatePasses       GatePass[]
+  workstationReservations WorkstationReservation[]
 
   @@index([email])
   @@index([roleId])
@@ -495,6 +496,38 @@ model BorrowRecord {
   @@index([userId])
   @@index([status])
   @@map("library_borrow_records")
+}
+
+model DigitalWorkstation {
+  id             String                   @id @default(uuid()) @db.Uuid
+  labName        String                   // e.g. "Lab 1 - AI & Data Research Lab"
+  stationNumber  String                   // e.g. "WS-01", "WS-02"
+  specifications String                   // e.g. "Core i7 13th Gen, 32GB RAM, RTX 4070, Dual 27\" Monitors"
+  isOperational  Boolean                  @default(true)
+  createdAt      DateTime                 @default(now())
+  updatedAt      DateTime                 @updatedAt
+  reservations   WorkstationReservation[]
+
+  @@unique([labName, stationNumber])
+  @@map("digital_workstations")
+}
+
+model WorkstationReservation {
+  id            String             @id @default(uuid()) @db.Uuid
+  workstationId String             @db.Uuid
+  workstation   DigitalWorkstation @relation(fields: [workstationId], references: [id], onDelete: Cascade)
+  userId        String             @db.Uuid
+  user          User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date          DateTime           @db.Date
+  timeSlot      String             // e.g. "09:00 - 11:00", "11:00 - 13:00", "14:00 - 16:00"
+  purpose       String?            // "FYP Research / Deep Learning Model Training"
+  status        String             @default("ACTIVE") // ACTIVE, COMPLETED, CANCELLED
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+
+  @@unique([workstationId, date, timeSlot])
+  @@index([userId])
+  @@map("workstation_reservations")
 }
 
 // ------------------------------------------------------------------------------
